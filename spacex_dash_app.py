@@ -36,11 +36,16 @@ app.layout = html.Div(children=[html.H1('SpaceX Launch Records Dashboard',
 
                                 html.P("Payload range (Kg):"),
                                 # TASK 3: Add a slider to select payload range
-                                dcc.RangeSlider(id='payload-slider', 
-                                    min=0, max=10000, step=1000,
-                                    marks={0: '0', 2500: '2500', 5000: '5000', 7500: '7500', 10000: '10000'},
-                                    value=[min_payload, max_payload]),
-
+                                html.Div(
+                                        [
+                                            #dcc.Input(type='text', value=min_payload),
+                                            dcc.RangeSlider(id='payload-slider', 
+                                                min=0, max=10000, step=1000,
+                                                marks={0: '0', 2500: '2500', 5000: '5000', 7500: '7500', 10000: '10000'},
+                                                value=[min_payload, max_payload]),
+                                            #dcc.Input(type='text', value=max_payload)
+                                        ],
+                                    style={"height": "100px", "width": "1000px"}),
                                 # TASK 4: Add a scatter chart to show the correlation between payload and launch success
                                 html.Div(dcc.Graph(id='success-payload-scatter-chart')),
                                 ])
@@ -74,7 +79,7 @@ def get_pie_chart(entered_site):
 @app.callback(Output(component_id='success-payload-scatter-chart', component_property='figure'), 
               [Input(component_id='site-dropdown', component_property='value'), 
               Input(component_id="payload-slider", component_property="value")])
-def get_chart(entered_site, payload):
+def get_chart(entered_site, payload_range):
     filtered_df = spacex_df
     if entered_site == 'ALL':
         data = filtered_df
@@ -83,7 +88,10 @@ def get_chart(entered_site, payload):
         filtered_df = filtered_df[(filtered_df['Launch Site'] == entered_site)]
         data = filtered_df
     # end if
-    fig = px.scatter(data, x="Payload Mass (kg)", y="class", color="Booster Version Category")
+    print("Filtering: " + str(payload_range))
+    filtered_df = filtered_df[(filtered_df['Payload Mass (kg)'] >= payload_range[0])]
+    filtered_df = filtered_df[(filtered_df['Payload Mass (kg)'] <= payload_range[1])]
+    fig = px.scatter(filtered_df, x="Payload Mass (kg)", y="class", color="Booster Version Category")
     return fig
 # end def
 
